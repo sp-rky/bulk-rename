@@ -2,6 +2,7 @@ import os
 
 # variables used later in the script
 nameSuffix = 0
+# structure: {file location: containing folder of file}
 fileDict = {}
 
 # function to get all files from all subdirectories
@@ -18,64 +19,68 @@ def getAllFiles(location, doFolders):
                 files[os.path.join(r, folder)] = r
     return files
 
+def getSurfaceFiles(location, doFolders):
+    files = {}
+    for file in os.listdir(fileDirectory):
+        # check to see if the file is a folder
+        if os.path.splitext(file)[1] != '' and not doFolders:
+            # add the entry to the fileDict dictionary
+            files[location + '\\' + file] = fileDirectory
+        if doFolders:
+            # see above comment
+            files[location + '\\' + file] = fileDirectory
+    return files
+
 # get required input from the user
 fileDirectory = input('Where are the files? ')
 
 # rename folders as well as files?
-doRenameFolders = input('Would you like to rename all files?(y/n) ')
+doRenameFolders = True if input('Would you like to rename all files? (y/n) ').lower()[0] == 'y' else False
 
 # do we need to go through all the subdirectories?
-doSubDir = input('Would you like to rename all subdirectories?(y/n) ')
+doSubDir = True if input('Would you like to rename all subdirectories? (y/n) ').lower()[0] == 'y' else False
 
 # if yes then use the getAllFiles() function
-if doSubDir.lower()[0] == 'y':
-    if doRenameFolders.lower()[0] == 'n':
-        fileDict = getAllFiles(fileDirectory, False)
-    else:
-        fileDict = getAllFiles(fileDirectory, True)
+if doSubDir:
+    fileDict = getAllFiles(fileDirectory, doRenameFolders)
 
-# otherwise just use the listdir() function
+# otherwise just use the getSurfaceFiles() function
 else:
-    for file in os.listdir(fileDirectory):
-        # check to see if the file is a folder
-        if os.path.splitext(file)[1] != '' and doRenameFolders.lower()[0] == 'n':
-            # add the entry to the fileDict dictionary
-            # stored like this: {file location: containing folder of file}
-            fileDict[fileDirectory + '\\' + file] = fileDirectory
-        else:
-            # see above comment
-            fileDict[fileDirectory + '\\' + file] = fileDirectory
+    fileDict = getSurfaceFiles(fileDirectory, doRenameFolders)
 
 # get the naming prefix from the user
 namePrefix = input('What would you like the naming prefix to be? ')
-
 print()
 
-# loop through every file to be renamed
-for file in fileDict:
-    # get the file extension to be used in the next line
-    fileExtension = os.path.splitext(file)[1]
-    # set the name
-    name = fileDict[file] + '\\' + namePrefix + str(nameSuffix) + fileExtension
-    # rename the file if it is just a file
-    if fileExtension != '':
-        os.rename(file, name)
-        # increment nameSuffix by 1 so all names are unique
-        nameSuffix += 1
-        print(f'Renamed \"{file}\" to \"{name}\"')
+# sort folders by how deep they are in the file system in order to prevent renaming of holding folders
+# fuck yes this is janky as shit but its fastish and it works
+sortedFiles = {}
+originalSize = len(fileDict)
+while(len(sortedFiles) != originalSize):
+    maxKey = ''
+    for file in fileDict:
+        # if the file is the deepest in the file system
+        if len(maxKey.split('\\')) < len(file.split('\\')):
+            maxKey, maxVal = file, fileDict[file]
+    sortedFiles[maxKey] = maxVal
+    fileDict.pop(maxKey)
 
-for file in fileDict:
+
+# loop through every file to be renamed
+for file in sortedFiles:
     # get the file extension to be used in the next line
     fileExtension = os.path.splitext(file)[1]
     # set the name
-    name = fileDict[file] + '\\' + namePrefix + str(nameSuffix) + fileExtension
-    # rename the file if it is a folder
-    if fileExtension == '':
-        os.rename(file, name)
-        # increment nameSuffix by 1 so all names are unique
-        nameSuffix += 1
-        print(f'Renamed \"{file}\" to \"{name}\"')
+    name = sortedFiles[file] + '\\' + namePrefix + str(nameSuffix) + fileExtension
+    # rename the file/folder
+    os.rename(file, name)
+    # increment nameSuffix by 1 so all names are unique
+    nameSuffix += 1
+    print(f'Renamed \"{file}\" to \"{name}\"')
+
+
 
 # alert the user that the program is finished
 print(f'\nRenamed {nameSuffix} file(s).')
-input('Press the enter key to exit...')
+print('Press the any key to exit...', end='', flush=True)
+os.system('PAUSE >nul')
