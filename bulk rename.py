@@ -82,6 +82,7 @@ try:
     print(f'\nRenamed {nameSuffix} file(s).')
     print('Press the any key to exit...', end='', flush=True)
     os.system('PAUSE >nul')
+    
 except Exception as e:
     print('Error:')
     print(e)
