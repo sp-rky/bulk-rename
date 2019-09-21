@@ -18,3 +18,4 @@
   - Fixed a bug that caused the program to crash when renaming subfolders.
     - The program now renames the folders/files deepest in the file system.
   - Added an error message printer instead of just exiting the program.
+  - Cleaned up the code a bit, and made some minor optimisations.
