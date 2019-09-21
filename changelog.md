@@ -13,3 +13,8 @@
   - Make it able to be run from the command line with arguments (if that's possible lol)
   - Outputting files all into one folder
   - As much as I hate GUI's, I'm going to have to bite the bullet and make this a GUI application at some point.
+  
+**v1.2**:
+  - Fixed a bug that caused the program to crash when renaming subfolders.
+    - The program now renames the folders/files deepest in the file system.
+  - Added an error message printer instead of just exiting the program.
